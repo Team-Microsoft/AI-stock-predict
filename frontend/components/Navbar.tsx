@@ -46,6 +46,9 @@ export default function Navbar() {
                 <Link href="/" className="hover:text-blue-400 transition-colors text-sm font-medium">
                   Home
                 </Link>
+                <Link href="/statistics" className="hover:text-blue-400 transition-colors text-sm font-medium">
+                  Statistics
+                </Link>
                 <Link href="/chatbot" className="hover:text-blue-400 transition-colors text-sm font-medium">
                   AI Analyst
                 </Link>

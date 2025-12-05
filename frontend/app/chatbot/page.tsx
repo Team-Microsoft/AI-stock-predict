@@ -22,17 +22,22 @@ export default function Chatbot() {
     if (!input.trim()) return;
 
     const userMsg = input;
+    // Add user message
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setInput('');
-    setLoading(true);
+    setLoading(true); // <--- Important: Start loading
 
     try {
-      const res = await axios.post('http://localhost:5000/api/chat', { message: userMsg });
+      // The backend now handles resolution, so we just send the raw text
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/chat`, { 
+        message: userMsg 
+      });
+      
       setMessages(prev => [...prev, { role: 'bot', text: res.data.reply }]);
     } catch (err) {
       setMessages(prev => [...prev, { role: 'bot', text: "Sorry, I'm having trouble connecting to the market server." }]);
     }
-    setLoading(false);
+    setLoading(false); // <--- Stop loading
   };
 
   return (
