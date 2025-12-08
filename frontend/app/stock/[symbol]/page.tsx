@@ -16,15 +16,14 @@ import {
   Legend,
   Filler
 } from 'chart.js';
-import { Line, Bar } from 'react-chartjs-2'; // Import Bar component
+import { Line, Bar } from 'react-chartjs-2';
 
-// Register Chart.js components locally
 ChartJS.register(
   CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
-  BarElement, // Required for Bar charts
+  BarElement,
   Title,
   Tooltip,
   Legend,
@@ -39,10 +38,8 @@ export default function StockDetail() {
   const [forecasts, setForecasts] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  // Hardcoded base URL for local reliability
   const baseUrl = 'http://127.0.0.1:5000';
 
-  // 1. Fetch Forecasts on Load
   useEffect(() => {
     if (symbol) {
       axios.post(`${baseUrl}/api/forecast`, { symbol })
@@ -69,30 +66,30 @@ export default function StockDetail() {
     setLoading(false);
   };
 
-  // Prepare Chart Data (Price + Moving Averages)
   const chartData = {
-    labels: prediction?.history?.dates.slice(-50) || [],
+    labels: prediction?.history?.dates.slice(-100) || [],
     datasets: [
       {
         label: 'Historical Price',
-        data: prediction?.history?.prices.slice(-50) || [],
-        borderColor: 'rgb(59, 130, 246)', // Blue
+        data: prediction?.history?.prices.slice(-100) || [],
+        borderColor: 'rgb(59, 130, 246)',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         fill: true,
-        tension: 0.4
+        tension: 0.4,
+        pointRadius: 0
       },
       {
         label: 'MA 20',
-        data: prediction?.history?.ma20?.slice(-50) || [],
-        borderColor: '#FFD700', // Gold
+        data: prediction?.history?.ma20?.slice(-100) || [],
+        borderColor: '#FFD700',
         borderWidth: 2,
         pointRadius: 0,
         tension: 0.4
       },
       {
         label: 'MA 50',
-        data: prediction?.history?.ma50?.slice(-50) || [],
-        borderColor: '#FF4500', // Red-Orange
+        data: prediction?.history?.ma50?.slice(-100) || [],
+        borderColor: '#FF4500',
         borderWidth: 2,
         pointRadius: 0,
         tension: 0.4
@@ -100,60 +97,42 @@ export default function StockDetail() {
     ]
   };
 
-  // Prepare Algorithm Comparison Data (Bar Chart)
   const algoChartData = {
     labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
     datasets: [
-      { 
-        label: 'Linear Reg', 
-        data: prediction?.algoComparison?.linear || [], 
-        backgroundColor: 'rgba(59, 130, 246, 0.6)', 
-        borderColor: 'rgb(59, 130, 246)', 
-        borderWidth: 1 
-      },
-      { 
-        label: 'Random Forest', 
-        data: prediction?.algoComparison?.rf || [], 
-        backgroundColor: 'rgba(16, 185, 129, 0.6)', 
-        borderColor: 'rgb(16, 185, 129)', 
-        borderWidth: 1 
-      },
-      { 
-        label: 'XGBoost', 
-        data: prediction?.algoComparison?.xgboost || [], 
-        backgroundColor: 'rgba(245, 158, 11, 0.6)', 
-        borderColor: 'rgb(245, 158, 11)', 
-        borderWidth: 1 
-      },
-      { 
-        label: 'LSTM', 
-        data: prediction?.algoComparison?.lstm || [], 
-        backgroundColor: 'rgba(139, 92, 246, 0.6)', 
-        borderColor: 'rgb(139, 92, 246)', 
-        borderWidth: 1 
-      }
+      { label: 'Linear Reg', data: prediction?.algoComparison?.linear || [], backgroundColor: 'rgba(59, 130, 246, 0.6)', borderWidth: 1 },
+      { label: 'Random Forest', data: prediction?.algoComparison?.rf || [], backgroundColor: 'rgba(16, 185, 129, 0.6)', borderWidth: 1 },
+      { label: 'XGBoost', data: prediction?.algoComparison?.xgboost || [], backgroundColor: 'rgba(245, 158, 11, 0.6)', borderWidth: 1 },
+      { label: 'LSTM', data: prediction?.algoComparison?.lstm || [], backgroundColor: 'rgba(139, 92, 246, 0.6)', borderWidth: 1 }
     ]
   };
 
-  // Calculate latest Moving Averages for display
   const historyLen = prediction?.history?.prices?.length || 0;
-  
-  // Robust MA fetching
   const latestMA20 = prediction?.history?.ma20 ? prediction.history.ma20[historyLen - 1] : null;
   const latestMA50 = prediction?.history?.ma50 ? prediction.history.ma50[historyLen - 1] : null;
-
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         
-        {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">{String(symbol)} Analysis</h1>
-              <p className="text-gray-500">AI-Powered Prediction Engine</p>
+              
+              {/* UPDATED LINKS SECTION */}
+              <div className="flex gap-3 mt-2 text-sm items-center">
+                <a href={`/technical/${symbol}`} className="text-blue-600 hover:underline">View Technicals</a>
+                <span className="text-gray-300">|</span>
+                <a href={`/compare/${symbol}`} className="text-blue-600 hover:underline">Compare Algorithms</a>
+                <span className="text-gray-300">|</span>
+                {/* Passes symbol to portfolio page */}
+                <a href={`/portfolio?symbol=${symbol}`} className="bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200 transition-colors font-medium">
+                  + Add to Portfolio
+                </a>
+              </div>
+
             </div>
             {prediction && (
                <div className="text-right bg-white p-3 rounded-lg shadow-sm border border-gray-100">
@@ -163,7 +142,6 @@ export default function StockDetail() {
             )}
           </div>
 
-          {/* Forecast Cards Section */}
           {forecasts ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
@@ -191,8 +169,6 @@ export default function StockDetail() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Controls */}
           <div className="space-y-6">
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-lg font-medium text-gray-900 mb-4">Configuration</h2>
@@ -232,21 +208,12 @@ export default function StockDetail() {
             )}
           </div>
 
-          {/* Charts Section */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Price History Chart */}
             <div className="bg-white shadow rounded-lg p-6">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">Price History & Moving Averages</h3>
-                <div className="h-80 w-full relative"> {/* Added relative positioning */}
+                <div className="h-80 w-full relative">
                     {prediction ? (
-                        <Line 
-                            data={chartData} 
-                            options={{ 
-                                maintainAspectRatio: false, 
-                                responsive: true,
-                                animation: false // Disable animation for instant render
-                            }} 
-                        />
+                        <Line data={chartData} options={{ maintainAspectRatio: false, responsive: true, animation: false }} />
                     ) : (
                         <div className="h-full flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-200 rounded">
                             Select date to view chart
@@ -255,21 +222,11 @@ export default function StockDetail() {
                 </div>
             </div>
 
-            {/* Algorithm Comparison Chart (Bar Chart) */}
             <div className="bg-white shadow rounded-lg p-6">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">Algorithm Comparison (7-Day Forecast)</h3>
-                <div className="h-64 w-full relative"> {/* Added relative positioning */}
+                <div className="h-64 w-full relative">
                     {prediction ? (
-                        <Bar 
-                          data={algoChartData} 
-                          options={{ 
-                            maintainAspectRatio: false, 
-                            responsive: true,
-                            scales: {
-                              y: { beginAtZero: false } 
-                            }
-                          }} 
-                        />
+                        <Bar data={algoChartData} options={{ maintainAspectRatio: false, responsive: true, scales: { y: { beginAtZero: false } } }} />
                     ) : (
                         <div className="h-full flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-200 rounded">
                             Run prediction to compare algorithms

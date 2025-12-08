@@ -5,7 +5,7 @@ import Navbar from '../../components/Navbar';
 
 export default function Chatbot() {
   const [messages, setMessages] = useState([
-    { role: 'bot', text: 'Hello! I am your AI Market Assistant. Ask me about stock prices, trends, or highs/lows for any Indian stock (e.g., "What is the price of ITC?").' }
+    { role: 'bot', text: 'Hello! I am your AI Market Assistant. Ask me to predict future prices (e.g., "Predict trend for TCS") or get live quotes.' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,22 +22,20 @@ export default function Chatbot() {
     if (!input.trim()) return;
 
     const userMsg = input;
-    // Add user message
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setInput('');
-    setLoading(true); // <--- Important: Start loading
+    setLoading(true);
+
+    // Use localhost fallback for development
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000';
 
     try {
-      // The backend now handles resolution, so we just send the raw text
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/chat`, { 
-        message: userMsg 
-      });
-      
+      const res = await axios.post(`${baseUrl}/api/chat`, { message: userMsg });
       setMessages(prev => [...prev, { role: 'bot', text: res.data.reply }]);
     } catch (err) {
       setMessages(prev => [...prev, { role: 'bot', text: "Sorry, I'm having trouble connecting to the market server." }]);
     }
-    setLoading(false); // <--- Stop loading
+    setLoading(false);
   };
 
   return (
@@ -58,19 +56,27 @@ export default function Chatbot() {
           <div ref={scrollRef} className="flex-grow p-6 overflow-y-auto space-y-4 bg-gray-50">
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                <div className={`max-w-[80%] rounded-2xl px-4 py-3 whitespace-pre-wrap ${
                   msg.role === 'user' 
                     ? 'bg-blue-600 text-white rounded-br-none' 
                     : 'bg-white text-gray-800 shadow-sm border border-gray-100 rounded-bl-none'
                 }`}>
-                  {msg.text}
+                  {/* Render text with basic formatting */}
+                  {msg.text.split(/(\*\*.*?\*\*|_[^_]+_)/).map((part, i) => {
+                    if (part.startsWith('**') && part.endsWith('**')) {
+                      return <strong key={i}>{part.slice(2, -2)}</strong>;
+                    } else if (part.startsWith('_') && part.endsWith('_')) {
+                      return <em key={i}>{part.slice(1, -1)}</em>;
+                    }
+                    return part;
+                  })}
                 </div>
               </div>
             ))}
             {loading && (
               <div className="flex justify-start">
                 <div className="bg-gray-200 rounded-full px-4 py-2 text-gray-500 text-sm animate-pulse">
-                  Thinking...
+                  Analyzing market data...
                 </div>
               </div>
             )}
@@ -83,7 +89,7 @@ export default function Chatbot() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about a stock (e.g. 'Predict trend for TATASTEEL')"
+                placeholder="Try: 'Predict price for TATAPOWER'"
                 className="flex-grow border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button 
