@@ -140,6 +140,11 @@ Project presentation and detailed explanation:
 
 ---
 
+## Architecture Documentation
+
+For detailed system design and model workflow, refer to:  
+[Model Architecture Documentation](MODEL_ARCHITECTURE.md)
+
 ## Contribution
 
 Contributions, suggestions, and improvements are welcome.
